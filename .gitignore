@@ -1,0 +1,11 @@
+# Frontend
+adminpgcportal/node_modules
+adminpgcportal/dist
+
+# Backend
+adminpgcportal-backend/vendor
+adminpgcportal-backend/storage/*.key
+
+# System
+.DS_Store
+.env
