@@ -140,7 +140,7 @@ class PGCCertController extends Controller
         }
 
         $data = $query
-            ->orderBy('ID', 'desc')
+            ->orderBy('ReferenceNo', 'desc')
             ->paginate(5);
 
         return $data;

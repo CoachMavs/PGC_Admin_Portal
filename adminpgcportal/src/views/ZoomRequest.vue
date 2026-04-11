@@ -172,7 +172,7 @@ export default {
   mounted() {
     this.fetch();
 
-    this.channel = echo.channel("chat").listen(".message.sent", (e) => {
+    this.channel = echo.channel("portal-notifications").listen("PortalNotification", (e) => {
       if (e.message === "triggerZoomPending") {
         this.fetch();
       }
@@ -181,41 +181,16 @@ export default {
 
   beforeUnmount() {
     if (this.channel) {
-      this.channel.stopListening(".message.sent");
+      this.channel.stopListening("PortalNotification");
     }
   },
 
   methods: {
     fetchNotif() {
-      axios({
-        method: "get",
-        url: process.env.VUE_APP_API + "PGCNotifications/triggerZoomPending",
-        headers: {
-          // Authorization: "Bearer " + localStorage.getItem("xxx"),
-        },
-      })
-        .then((resp) => {
-          this.fetchNotifUpcoming();
-        })
-        .catch((err) => {
-          console.error(err.response);
-          this.$refs.MySnackBar.showErrorMessage("Something went wrong!");
-        });
+      return;
     },
     fetchNotifUpcoming() {
-      axios({
-        method: "get",
-        url: process.env.VUE_APP_API + "PGCNotifications/triggerZoomUpcoming",
-        headers: {
-          // Authorization: "Bearer " + localStorage.getItem("xxx"),
-        },
-      })
-        .then((resp) => {})
-
-        .catch((err) => {
-          console.error(err.response);
-          this.$refs.MySnackBar.showErrorMessage("Something went wrong!");
-        });
+      return;
     },
     clearInputs() {
       this.payload = {

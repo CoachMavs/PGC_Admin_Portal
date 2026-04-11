@@ -208,7 +208,7 @@ export default {
 
     this.fetch();
 
-    this.channel = echo.channel("chat").listen(".message.sent", (e) => {
+    this.channel = echo.channel("portal-notifications").listen("PortalNotification", (e) => {
       if (e.message === "triggerZoomPrev") {
         this.fetch();
       }
@@ -217,7 +217,7 @@ export default {
 
   beforeUnmount() {
     if (this.channel) {
-      this.channel.stopListening(".message.sent");
+      this.channel.stopListening("PortalNotification");
     }
   },
   methods: {

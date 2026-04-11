@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\MessageSent;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -57,6 +58,8 @@ class PGCCertWasteController extends Controller
                 'repairlogID' => $repairlogID,
                 'ActionTaken' => 'Issued Waste Certificate',
             ]);
+
+        broadcast(new MessageSent("triggerWasteCertificate"));
     }
 
     public function fetchRequest(Request $req)
@@ -127,7 +130,7 @@ class PGCCertWasteController extends Controller
         }
 
         $data = $query
-            ->orderBy('ID', 'desc')
+            ->orderBy('ReferenceNo', 'desc')
             ->paginate(5);
 
         return $data;
@@ -144,6 +147,8 @@ class PGCCertWasteController extends Controller
                 'ReferenceNo' => null,
                 'DDate' => null,
             ]);
+
+        broadcast(new MessageSent("triggerWasteCertificate"));
     }
 
     private function generateReferenceCode()

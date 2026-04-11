@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Events\MessageSent;
+use App\Events\PortalNotification;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -81,6 +82,21 @@ class PGCRepairsController extends Controller
                     'Receivedby' => $Receivedby
                 ]);
         }
+
+        Log::info('ReceiveReq reached');
+        Log::info('Active Pusher config', [
+            'key' => config('broadcasting.connections.pusher.key'),
+            'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+            'host' => config('broadcasting.connections.pusher.options.host'),
+            'port' => config('broadcasting.connections.pusher.options.port'),
+            'scheme' => config('broadcasting.connections.pusher.options.scheme'),
+        ]);
+        broadcast(new MessageSent("triggerForReceivingRepairs"));
+        broadcast(new MessageSent("triggerCurrentRepairs"));
+        Log::info('Broadcasting PortalNotification triggerForReceivingRepairs');
+        broadcast(new PortalNotification("triggerForReceivingRepairs"));
+        Log::info('Broadcasting PortalNotification triggerCurrentRepairs');
+        broadcast(new PortalNotification("triggerCurrentRepairs"));
     }
     public function AddActions(Request $req)
     {
@@ -97,6 +113,10 @@ class PGCRepairsController extends Controller
             'repairlogID' => $repairlogID,
             'ActionTaken'   => $actionsTaken
         ]);
+
+        broadcast(new MessageSent("triggerCurrentRepairs"));
+        Log::info('Broadcasting PortalNotification triggerCurrentRepairs from AddActions');
+        broadcast(new PortalNotification("triggerCurrentRepairs"));
     }
 
     public function DeleteReq(Request $req)
@@ -106,6 +126,10 @@ class PGCRepairsController extends Controller
         DB::table('tblrepairlog')
             ->where('id', $id)
             ->delete();
+
+        broadcast(new MessageSent("triggerPendingRepairs"));
+        Log::info('Broadcasting PortalNotification triggerPendingRepairs from DeleteReq');
+        broadcast(new PortalNotification("triggerPendingRepairs"));
     }
 
     public function UpdateStatusNotRepaired(Request $req)
@@ -133,6 +157,10 @@ class PGCRepairsController extends Controller
                 'ReturnedTo' => $ReturnedToNo,
                 'Comment' => $Comments
             ]);
+
+        broadcast(new MessageSent("triggerCurrentRepairs"));
+        Log::info('Broadcasting PortalNotification triggerCurrentRepairs from UpdateStatusNotRepaired');
+        broadcast(new PortalNotification("triggerCurrentRepairs"));
     }
 
     public function UpdateStatusRepaired(Request $req)
@@ -158,6 +186,10 @@ class PGCRepairsController extends Controller
                 'DateReturned' => $DateReturned,
                 'ReturnedTo' => $ReturnedToNo
             ]);
+
+        broadcast(new MessageSent("triggerCurrentRepairs"));
+        Log::info('Broadcasting PortalNotification triggerCurrentRepairs from UpdateStatusRepaired');
+        broadcast(new PortalNotification("triggerCurrentRepairs"));
     }
 
     public function ApproveReq(Request $req)
@@ -175,6 +207,10 @@ class PGCRepairsController extends Controller
             ->update([
                 'Status_Remarks' => $status
             ]);
+
+        broadcast(new MessageSent("triggerPendingRepairs"));
+        Log::info('Broadcasting PortalNotification triggerPendingRepairs from ApproveReq');
+        broadcast(new PortalNotification("triggerPendingRepairs"));
     }
 
 

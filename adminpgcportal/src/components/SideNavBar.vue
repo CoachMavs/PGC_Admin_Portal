@@ -358,6 +358,9 @@ export default {
       Collapsed1: true,
       Collapsed2: true,
       Collapsed3: true,
+      buttonClicked1: false,
+      buttonClicked2: false,
+      buttonClicked3: false,
       items: [],
       showIframe: false, // Add this
       iframeSrc: "",

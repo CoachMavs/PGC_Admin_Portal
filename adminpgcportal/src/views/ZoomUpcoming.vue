@@ -157,6 +157,7 @@ export default {
     fetchLoading: false,
     btnLoading: false,
     items: [],
+    channel: null,
 
     payload: {
       id: "",
@@ -179,6 +180,12 @@ export default {
   mounted() {
     this.fetch();
 
+    this.channel = echo.channel("portal-notifications").listen("PortalNotification", (e) => {
+      if (e.message === "triggerZoomUpcoming") {
+        this.fetch();
+      }
+    });
+
     //  this.intervalId = setInterval(() => {
     //   const now = new Date();
 
@@ -193,25 +200,15 @@ export default {
   },
 
   beforeUnmount() {
+    if (this.channel) {
+      this.channel.stopListening("PortalNotification");
+    }
     // clearInterval(intervalId); // cleanup when component is destroyed
   },
 
   methods: {
     fetchNotif() {
-      axios({
-        method: "get",
-        url: process.env.VUE_APP_API + "PGCNotifications/triggerZoomPrev",
-        headers: {
-          // Authorization: "Bearer " + localStorage.getItem("xxx"),
-        },
-      })
-        .then((resp) => {
-          this.fetchNotifUpcoming();
-        })
-        .catch((err) => {
-          console.error(err.response);
-          this.$refs.MySnackBar.showErrorMessage("Something went wrong!");
-        });
+      return;
     },
 
     clearInputs() {

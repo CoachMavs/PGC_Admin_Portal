@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\MessageSent;
+use App\Events\PortalNotification;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -31,6 +33,21 @@ class PGCZoomController extends Controller
                 'assignedto' => $emp_no,
                 'approve_datetime' => date('Y-m-d H:i:s')
             ]);
+
+        Log::info('setZoomLink reached');
+        Log::info('Active Pusher config', [
+            'key' => config('broadcasting.connections.pusher.key'),
+            'cluster' => config('broadcasting.connections.pusher.options.cluster'),
+            'host' => config('broadcasting.connections.pusher.options.host'),
+            'port' => config('broadcasting.connections.pusher.options.port'),
+            'scheme' => config('broadcasting.connections.pusher.options.scheme'),
+        ]);
+        broadcast(new MessageSent("triggerZoomPending"));
+        broadcast(new MessageSent("triggerZoomUpcoming"));
+        Log::info('Broadcasting PortalNotification triggerZoomPending');
+        broadcast(new PortalNotification("triggerZoomPending"));
+        Log::info('Broadcasting PortalNotification triggerZoomUpcoming');
+        broadcast(new PortalNotification("triggerZoomUpcoming"));
     }
 
     public function fetchRequest(Request $req)

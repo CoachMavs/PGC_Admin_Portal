@@ -57,7 +57,7 @@ export default {
   mounted() {
     this.fetchDashboardData();
 
-    this.channel = echo.channel("chat").listen(".message.sent", (e) => {
+    this.channel = echo.channel("portal-notifications").listen("PortalNotification", (e) => {
       switch (e.message) {
         case "triggerPostInspection":
           this.fetchPostInspection();
@@ -77,6 +77,9 @@ export default {
           break;
         case "triggerForReceivingRepairs":
           this.fetchForReceiving();
+          this.fetchOngoing();
+          this.fetchRepaired();
+          this.fetchNotRepaired();
           break;
         case "triggerCurrentRepairs":
           this.fetchOngoing();
@@ -91,7 +94,7 @@ export default {
 
   beforeUnmount() {
     if (this.channel) {
-      this.channel.stopListening(".message.sent");
+      this.channel.stopListening("PortalNotification");
     }
   },
 
@@ -99,10 +102,6 @@ export default {
     playSound(filePath) {
       const audio = new Audio(filePath);
       audio.play();
-    },
-
-    delay(ms) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
     },
 
     async fetchDashboardData() {
@@ -121,42 +120,17 @@ export default {
 
       try {
         const baseURL = process.env.VUE_APP_API + "Dash/";
+        const summary = await axios.get(baseURL + "fetchSummary", config);
 
-        const postInspection = await axios.get(baseURL + "fetchPostInspection", config);
-        await this.delay(200);
-
-        const wasteCert = await axios.get(baseURL + "fetchWasteCerticate", config);
-        await this.delay(200);
-
-        const newZoom = await axios.get(baseURL + "fetchNewZoomRequest", config);
-        await this.delay(200);
-
-        const upcomingZoom = await axios.get(baseURL + "fetchUpcomingZoom", config);
-        await this.delay(200);
-
-        const forApproval = await axios.get(baseURL + "fetchForApproval", config);
-        await this.delay(200);
-
-        const forReceiving = await axios.get(baseURL + "fetchForReceiving", config);
-        await this.delay(200);
-
-        const ongoing = await axios.get(baseURL + "fetchOngoing", config);
-        await this.delay(200);
-
-        const repaired = await axios.get(baseURL + "fetchRepaired", config);
-        await this.delay(200);
-
-        const notRepaired = await axios.get(baseURL + "fetchNotRepaired", config);
-
-        this.dashboardData.postInspectionRequests = postInspection.data ?? 0;
-        this.dashboardData.wasteCertificationRequests = wasteCert.data ?? 0;
-        this.dashboardData.newZoomRequests = newZoom.data ?? 0;
-        this.dashboardData.upcomingZoomMeetings = upcomingZoom.data ?? 0;
-        this.dashboardData.repairRequestsForApproval = forApproval.data ?? 0;
-        this.dashboardData.repairRequestsForReceiving = forReceiving.data ?? 0;
-        this.dashboardData.ongoingRepair = ongoing.data ?? 0;
-        this.dashboardData.forPickUpRepaired = repaired.data ?? 0;
-        this.dashboardData.forPickupNotRepaired = notRepaired.data ?? 0;
+        this.dashboardData.postInspectionRequests = summary.data?.postInspectionRequests ?? 0;
+        this.dashboardData.wasteCertificationRequests = summary.data?.wasteCertificationRequests ?? 0;
+        this.dashboardData.newZoomRequests = summary.data?.newZoomRequests ?? 0;
+        this.dashboardData.upcomingZoomMeetings = summary.data?.upcomingZoomMeetings ?? 0;
+        this.dashboardData.repairRequestsForApproval = summary.data?.repairRequestsForApproval ?? 0;
+        this.dashboardData.repairRequestsForReceiving = summary.data?.repairRequestsForReceiving ?? 0;
+        this.dashboardData.ongoingRepair = summary.data?.ongoingRepair ?? 0;
+        this.dashboardData.forPickUpRepaired = summary.data?.forPickUpRepaired ?? 0;
+        this.dashboardData.forPickupNotRepaired = summary.data?.forPickupNotRepaired ?? 0;
       } catch (err) {
         if (err.name === "CanceledError" || err.code === "ERR_CANCELED") {
           console.log("API call was canceled.");

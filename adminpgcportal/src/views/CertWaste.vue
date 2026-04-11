@@ -8,117 +8,65 @@
       <div class="d-flex justify-content-between align-items-center">
         <v-row rows="auto">
           <v-col cols="12" md="3">
-            <v-text-field
-              v-model="searchkey"
-              label="Search"
-              append-inner-icon="mdi-magnify"
-              clearable
-              @update:model-value="handleSearchInput"
-            />
+            <v-text-field v-model="searchkey" label="Search" append-inner-icon="mdi-magnify" clearable
+              @update:model-value="handleSearchInput" />
           </v-col>
 
           <v-col cols="12" md="2">
-            <v-select
-              v-model="assignedFilter"
-              :items="['All', 'Only me']"
-              append-inner-icon="mdi-filter-outline"
-              label="Assigned to:"
-              dense
-              @update:model-value="handleSearchInput"
-            />
+            <v-select v-model="assignedFilter" :items="['All', 'Only me']" append-inner-icon="mdi-filter-outline"
+              label="Assigned to:" dense @update:model-value="handleSearchInput" />
           </v-col>
 
           <!-- Date From -->
           <v-col cols="12" md="2">
-            <v-menu
-              v-model="menufrom"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              min-width="auto"
-            >
+            <v-menu v-model="menufrom" :close-on-content-click="false" transition="scale-transition" min-width="auto">
               <template v-slot:activator="{ props }">
-                <v-text-field
-                  v-model="formattedDateFrom"
-                  label="From"
-                  append-inner-icon="mdi-calendar"
-                  readonly
-                  v-bind="props"
-                  class="date-picker-field"
-                  @input="handleDateInput"
-                ></v-text-field>
+                <v-text-field v-model="formattedDateFrom" label="From" append-inner-icon="mdi-calendar" readonly
+                  v-bind="props" class="date-picker-field" @input="handleDateInput"></v-text-field>
               </template>
 
               <v-card class="d-flex justify-center align-center" style="width: 320px">
-                <v-date-picker
-                  v-model="datefrom"
-                  hide-header
-                  @update:model-value="
-                    (value) => {
-                      datefrom = value;
-                      updateFormattedDateFrom();
-                      fetch(); // Trigger fetch after updating the date
-                      menufrom = false; // Close the menu after selecting a date
-                    }
-                  "
-                ></v-date-picker>
+                <v-date-picker v-model="datefrom" hide-header @update:model-value="
+                  (value) => {
+                    datefrom = value;
+                    updateFormattedDateFrom();
+                    fetch(); // Trigger fetch after updating the date
+                    menufrom = false; // Close the menu after selecting a date
+                  }
+                "></v-date-picker>
               </v-card>
             </v-menu>
           </v-col>
 
           <!-- Date To -->
           <v-col cols="12" md="2">
-            <v-menu
-              v-model="menuto"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              min-width="auto"
-            >
+            <v-menu v-model="menuto" :close-on-content-click="false" transition="scale-transition" min-width="auto">
               <template v-slot:activator="{ props }">
-                <v-text-field
-                  style="justify-content: center"
-                  v-model="formattedDateTo"
-                  label="To"
-                  append-inner-icon="mdi-calendar"
-                  readonly
-                  v-bind="props"
-                  class="date-picker-field"
-                ></v-text-field>
+                <v-text-field style="justify-content: center" v-model="formattedDateTo" label="To"
+                  append-inner-icon="mdi-calendar" readonly v-bind="props" class="date-picker-field"></v-text-field>
               </template>
 
               <v-card class="d-flex justify-center align-center" style="width: 320px">
-                <v-date-picker
-                  v-model="dateto"
-                  hide-header
-                  @update:model-value="
-                    (value) => {
-                      dateto = value;
-                      updateFormattedDateTo();
-                      fetch();
-                      menuto = false; // Close the menu after selecting a date
-                    }
-                  "
-                ></v-date-picker>
+                <v-date-picker v-model="dateto" hide-header @update:model-value="
+                  (value) => {
+                    dateto = value;
+                    updateFormattedDateTo();
+                    fetch();
+                    menuto = false; // Close the menu after selecting a date
+                  }
+                "></v-date-picker>
               </v-card>
             </v-menu>
           </v-col>
 
           <v-col cols="12" md="2">
-            <v-text-field
-              v-model="totalRecords"
-              label="Total record(s) found:"
-              append-inner-icon="mdi-counter"
-              readonly
-            />
+            <v-text-field v-model="totalRecords" label="Total record(s) found:" append-inner-icon="mdi-counter"
+              readonly />
           </v-col>
 
           <v-col cols="12" md="1">
             <div class="text-center">
-              <v-btn
-                color="#14727a"
-                @click="OpenDialogAdd()"
-                style="height: 55px; width: 100%"
-                block
-              >
+              <v-btn color="#14727a" @click="OpenDialogAdd()" style="height: 55px; width: 100%" block>
                 <div class="d-flex flex-column align-start">
                   <span>Add</span>
                 </div>
@@ -144,6 +92,7 @@
             <tr>
               <th scope="col">Actions</th>
               <th scope="col">Reference No.</th>
+              <th scope="col">Certificate No.</th>
               <th scope="col">Name of User</th>
               <th scope="col">Department</th>
               <th scope="col">Division</th>
@@ -160,15 +109,8 @@
               <td style="width: 40px; word-break: break-word; white-space: normal">
                 <v-tooltip text="Edit" location="top">
                   <template v-slot:activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      class="mr-1 mb-1"
-                      icon="mdi-note-edit-outline"
-                      size="small"
-                      color="#14727a"
-                      flat
-                      @click="OpenEditDialog(item)"
-                    >
+                    <v-btn v-bind="props" class="mr-1 mb-1" icon="mdi-note-edit-outline" size="small" color="#14727a"
+                      flat @click="OpenEditDialog(item)">
                     </v-btn>
                   </template>
                 </v-tooltip>
@@ -190,20 +132,13 @@
 
                 <v-tooltip text="Print" location="top">
                   <template v-slot:activator="{ props }">
-                    <v-btn
-                      v-bind="props"
-                      class="mr-1 mb-1"
-                      icon="mdi-printer-outline"
-                      size="small"
-                      color="#14727a"
-                      flat
-                      @click="exportToPDF(item)"
-                    >
+                    <v-btn v-bind="props" class="mr-1 mb-1" icon="mdi-printer-outline" size="small" color="#14727a" flat
+                      @click="exportToPDF(item)">
                     </v-btn>
                   </template>
                 </v-tooltip>
               </td>
-
+              <td>{{ item.ReferenceNo1 }}</td>
               <td>{{ item.ReferenceNo }}</td>
               <td>{{ item.Name_of_User }}</td>
               <td>{{ item.DeptDesc }}</td>
@@ -226,16 +161,9 @@
       </div>
     </div>
     <div class="text-center">
-      <v-pagination
-        v-model="myPagination.page"
-        :length="myPagination.total"
-        :total-visible="$vuetify.display.smAndDown ? 1 : 7"
-        :size="$vuetify.display.smAndDown ? 'small' : 'default'"
-        @update:model-value="fetch('page')"
-        rounded="circle"
-        color="#673AB7"
-        class="my-pagination"
-      ></v-pagination>
+      <v-pagination v-model="myPagination.page" :length="myPagination.total"
+        :total-visible="$vuetify.display.smAndDown ? 1 : 7" :size="$vuetify.display.smAndDown ? 'small' : 'default'"
+        @update:model-value="fetch('page')" rounded="circle" color="#673AB7" class="my-pagination"></v-pagination>
     </div>
   </div>
 
@@ -261,112 +189,49 @@
             </v-row> -->
             <v-row>
               <v-col :md="AE ? 6 : 12" cols="12">
-                <v-text-field
-                  v-model="payloadExtra.Name_of_User"
-                  label="Name of User"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  readonly
-                >
+                <v-text-field v-model="payloadExtra.Name_of_User" label="Name of User" color="#14727a"
+                  variant="outlined" hide-details="auto" readonly>
                   <template v-slot:append-inner>
-                    <v-icon @click="OpenDialogList()" class="cursor-pointer"
-                      >mdi-magnify</v-icon
-                    >
+                    <v-icon @click="OpenDialogList()" class="cursor-pointer">mdi-magnify</v-icon>
                   </template>
                 </v-text-field>
               </v-col>
 
               <v-col cols="12" md="6" v-if="AE">
-                <v-text-field
-                  v-model="payloadExtra.assignedto"
-                  :items="cmb"
-                  item-value="emp_no"
-                  item-title="empISU"
-                  label="Assigned To"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  readonly
-                />
+                <v-text-field v-model="payloadExtra.assignedto" item-value="emp_no" item-title="empISU"
+                  label="Assigned To" color="#14727a" variant="outlined" hide-details="auto" readonly />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="payloadExtra.Department"
-                  label="Department"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  readonly
-                />
+                <v-text-field v-model="payloadExtra.Department" label="Department" color="#14727a" variant="outlined"
+                  hide-details="auto" readonly />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="payloadExtra.Division"
-                  label="Division"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  readonly
-                />
+                <v-text-field v-model="payloadExtra.Division" label="Division" color="#14727a" variant="outlined"
+                  hide-details="auto" readonly />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="payloadExtra.Device"
-                  :items="devices"
-                  label="Device"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  readonly
-                />
+                <v-text-field v-model="payloadExtra.Device" label="Device" color="#14727a"
+                  variant="outlined" hide-details="auto" readonly />
               </v-col>
               <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="payloadExtra.BrandModel"
-                  :placeholder="'ex: EPSON L3110'"
-                  label="Brand/Model"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  readonly
-                />
+                <v-text-field v-model="payloadExtra.BrandModel" :placeholder="'ex: EPSON L3110'" label="Brand/Model"
+                  color="#14727a" variant="outlined" hide-details="auto" readonly />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-textarea
-                  v-model="payload.Diagnosis"
-                  label="Diagnosis"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  rows="1"
-                  required
-                  :rules="[required]"
-                  auto-grow
-                  validate-on="blur"
-                />
+                <v-textarea v-model="payload.Diagnosis" label="Diagnosis" color="#14727a" variant="outlined"
+                  hide-details="auto" rows="1" required :rules="[required]" auto-grow validate-on="blur" />
               </v-col>
             </v-row>
             <v-row>
               <v-col cols="12">
-                <v-textarea
-                  v-model="payload.Recommendation"
-                  label="Recommendation"
-                  color="#14727a"
-                  variant="outlined"
-                  hide-details="auto"
-                  rows="1"
-                  required
-                  :rules="[required]"
-                  auto-grow
-                  validate-on="blur"
-                />
+                <v-textarea v-model="payload.Recommendation" label="Recommendation" color="#14727a" variant="outlined"
+                  hide-details="auto" rows="1" required :rules="[required]" auto-grow validate-on="blur" />
               </v-col>
             </v-row>
           </v-container>
@@ -376,22 +241,11 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn
-          color="#14727a"
-          variant="elevated"
-          style="text-transform: none"
-          @click="clearInputs()"
-        >
+        <v-btn color="#14727a" variant="elevated" style="text-transform: none" @click="clearInputs()">
           Close
         </v-btn>
-        <v-btn
-          color="#14727a"
-          variant="elevated"
-          style="text-transform: none"
-          @click="addPre()"
-          :loading="btnLoading"
-          type="submit"
-        >
+        <v-btn color="#14727a" variant="elevated" style="text-transform: none" @click="addPre()" :loading="btnLoading"
+          type="submit">
           Save
         </v-btn>
       </v-card-actions>
@@ -403,44 +257,25 @@
   <!-- Modal with Data Table -->
   <v-dialog v-model="dialogList" max-width="800px">
     <v-card>
-      <v-card-title
-        style="background-color: #14727a; color: white"
-        class="d-flex align-center justify-space-between"
-      >
+      <v-card-title style="background-color: #14727a; color: white" class="d-flex align-center justify-space-between">
         <span>Select Record</span>
-        <v-btn
-          icon
-          variant="text"
-          style="background: transparent"
-          @click="dialogList = false"
-        >
+        <v-btn icon variant="text" style="background: transparent" @click="dialogList = false">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-card-title>
 
       <v-card-text>
-        <v-text-field
-          v-model="userSearch"
-          label="Search user"
-          clearable
-          class="mb-3"
-          prepend-inner-icon="mdi-magnify"
-        />
-        <v-data-table
-          class="my-table elevation-1"
-          header-class="my-table-header"
-          v-if="filteredUsers.length"
-          :headers="headers"
-          :items="filteredUsers"
-          item-value="ID"
-        >
+        <v-text-field v-model="userSearch" label="Search user" clearable class="mb-3"
+          prepend-inner-icon="mdi-magnify" />
+        <v-data-table class="my-table elevation-1" header-class="my-table-header" v-if="filteredUsers.length"
+          :headers="headers" :items="filteredUsers" item-value="ID">
           <template v-slot:item="{ item }">
             <tr @click="selectUser(item)" style="cursor: pointer">
+              <td>{{ item.ReferenceNo }}</td>
               <td>{{ item.Name_of_User }}</td>
               <td>{{ item.Type_of_Device }}</td>
               <td>{{ item.Brand_and_Model }}</td>
               <td>{{ item.DeptDesc }}</td>
-              <td>{{ item.DivDesc }}</td>
               <td>{{ item.AssignedTo }}</td>
             </tr>
           </template>
@@ -465,24 +300,14 @@
 
       <v-card-actions>
         <v-spacer></v-spacer>
-        <v-btn
-          color="#14727a"
-          variant="elevated"
-          style="text-transform: none"
-          @click="
-            Modal = false;
-            payload.id = '';
-          "
-        >
+        <v-btn color="#14727a" variant="elevated" style="text-transform: none" @click="
+          Modal = false;
+        payload.id = '';
+        ">
           Cancel
         </v-btn>
-        <v-btn
-          color="#14727a"
-          variant="elevated"
-          style="text-transform: none"
-          @click="DeleteReq()"
-          :loading="btnLoading"
-        >
+        <v-btn color="#14727a" variant="elevated" style="text-transform: none" @click="DeleteReq()"
+          :loading="btnLoading">
           Yes
         </v-btn>
       </v-card-actions>
@@ -519,6 +344,7 @@ export default {
     menuto: false,
     fetchLoading: false,
     btnLoading: false,
+    form: false,
     items: [],
     users: [],
     Modal: false,
@@ -531,12 +357,12 @@ export default {
     AE: "",
 
     headers: [
+      { title: "Reference No.", key: "ReferenceNo" },
       { title: "User", key: "Employee" },
       { title: "Device", key: "Type_of_Device" },
       { title: "Brand & Model", key: "Brand_and_Model" },
-      { title: "DeptDesc", key: "DeptDesc" },
-      { title: "DivDesc", key: "DivDesc" },
-      { title: "Assigned To", key: "AssignedTo" },
+      { title: "Department", key: "DeptDesc" },
+      { title: "Tech", key: "AssignedTo" },
     ],
 
     payload: {
@@ -605,7 +431,7 @@ export default {
 
     this.fetch();
 
-    this.channel = echo.channel("chat").listen(".message.sent", (e) => {
+    this.channel = echo.channel("portal-notifications").listen("PortalNotification", (e) => {
       if (e.message === "triggerWasteCertificate") {
         this.fetch();
       }
@@ -614,24 +440,17 @@ export default {
 
   beforeUnmount() {
     if (this.channel) {
-      this.channel.stopListening(".message.sent");
+      this.channel.stopListening("PortalNotification");
     }
   },
 
   methods: {
     fetchNotif() {
-      axios({
-        method: "get",
-        url: process.env.VUE_APP_API + "PGCNotifications/triggerWasteCertificate",
-        headers: {
-          Authorization: "Bearer " + localStorage.getItem("xxx"),
-        },
-      })
-        .then((resp) => {})
-        .catch((err) => {
-          console.error(err.response);
-          this.$refs.MySnackBar.showErrorMessage("Something went wrong!");
-        });
+      return;
+    },
+
+    handleDateInput() {
+      return;
     },
 
     formatDateWithSuffix(date) {
@@ -640,10 +459,10 @@ export default {
         day === 1 || day === 21 || day === 31
           ? "st"
           : day === 2 || day === 22
-          ? "nd"
-          : day === 3 || day === 23
-          ? "rd"
-          : "th";
+            ? "nd"
+            : day === 3 || day === 23
+              ? "rd"
+              : "th";
 
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
@@ -657,10 +476,10 @@ export default {
         day === 1 || day === 21 || day === 31
           ? "st"
           : day === 2 || day === 22
-          ? "nd"
-          : day === 3 || day === 23
-          ? "rd"
-          : "th";
+            ? "nd"
+            : day === 3 || day === 23
+              ? "rd"
+              : "th";
       const month = date.toLocaleString("en-US", { month: "long" });
       const year = date.getFullYear();
       return `Issued this ${day}${suffix} day of ${month}, ${year}.`;
@@ -767,13 +586,29 @@ export default {
           {
             stack: [
               {
-                text: [
-                  { text: "Reference No.: ", bold: false },
-                  { text: item.ReferenceNo, bold: true },
+                columns: [
+                  {
+                    width: "auto",
+                    qr: `${item.ReferenceNo1 ?? ""}`,
+                    fit: 50,
+                    alignment: "left",
+                  },
+                  {
+                    width: "*",
+                    text: "",
+                  },
+                  {
+                    width: "auto",
+                    text: [
+                      { text: "Reference No.: ", bold: false },
+                      { text: item.ReferenceNo, bold: true },
+                    ],
+                    alignment: "right",
+                    margin: [0, 0, 0, 0],
+                  },
                 ],
-                alignment: "right",
                 margin: [0, 0, 0, 40],
-                valign: "top",
+                columnGap: 10,
               },
               {
                 text: "C  E  R  T  I  F  I  C  A  T  I  O  N",
@@ -928,6 +763,8 @@ export default {
       this.payloadExtra.Device = item.Type_of_Device;
       this.payloadExtra.BrandModel = item.Brand_and_Model;
       this.payload.repairlogID = item.repairlogID;
+      this.payload.Diagnosis = "DEFECTIVE. Initial troubleshooting was conducted, and it was determined that the " + item.Type_of_Device?.toLowerCase() + " is defective; however, the issue remains unresolved.";
+      this.payload.Recommendation = "considered beyond repair and is recommended for proper retirement or replacement";
       this.dialogList = false;
 
       console.log("repairlogID:", this.payload.repairlogID);
@@ -1106,7 +943,8 @@ export default {
 
 <style scoped>
 .table-responsive {
-  overflow-x: auto; /* Hide the bottom horizontal scrollbar */
+  overflow-x: auto;
+  /* Hide the bottom horizontal scrollbar */
 }
 
 /* Remove .table-scroll-top styles */
@@ -1132,8 +970,10 @@ thead th {
 }
 
 .date-picker-field {
-  min-width: 200px; /* Adjust width as needed */
-  overflow: visible; /* Ensure text is not clipped */
+  min-width: 200px;
+  /* Adjust width as needed */
+  overflow: visible;
+  /* Ensure text is not clipped */
 }
 
 .v-divider {

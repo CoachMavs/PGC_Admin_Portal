@@ -28,7 +28,6 @@ use App\Http\Controllers\PGCCertController;
 use App\Http\Controllers\PGCCertPostController;
 use App\Http\Controllers\PGCCertWasteController;
 use App\Http\Controllers\ExportToPDFController;
-use App\Http\Controllers\PGCNotificationsController;
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -63,6 +62,7 @@ Route::group(['prefix' => 'Reports'], function () {
 //PGC Portal
 
 Route::group(['prefix' => 'Dash', 'middleware' => 'auth:sanctum'], function () {
+    Route::get('fetchSummary', [DashController::class, 'fetchSummary']);
     Route::get('fetchPostInspection', [DashController::class, 'fetchPostInspection']);
     Route::get('fetchWasteCerticate', [DashController::class, 'fetchWasteCerticate']);
     Route::get('fetchNewZoomRequest', [DashController::class, 'fetchNewZoomRequest']);
@@ -146,17 +146,3 @@ Route::group(['prefix' => 'ExportToPDF', 'middleware' => 'auth:sanctum'], functi
     Route::get('fetchRepairs', [ExportToPDFController::class, 'fetchRepairs']);
     Route::get('fetchZoom', [ExportToPDFController::class, 'fetchZoom']);
 });
-
-Route::group(['prefix' => 'PGCNotifications'], function () {
-    Route::get('triggerPostInspection', [PGCNotificationsController::class, 'triggerPostInspection']);
-    Route::get('triggerWasteCertificate', [PGCNotificationsController::class, 'triggerWasteCertificate']);
-    Route::get('triggerZoomPending', [PGCNotificationsController::class, 'triggerZoomPending']);
-    Route::get('triggerZoomUpcoming', [PGCNotificationsController::class, 'triggerZoomUpcoming']);
-    Route::get('triggerZoomPrev', [PGCNotificationsController::class, 'triggerZoomPrev']);
-    Route::get('triggerPendingRepairs', [PGCNotificationsController::class, 'triggerPendingRepairs']);
-    Route::get('triggerForReceivingRepairs', [PGCNotificationsController::class, 'triggerForReceivingRepairs']);
-    Route::get('triggerCurrentRepairs', [PGCNotificationsController::class, 'triggerCurrentRepairs']);
-});
-
-
-// http://localhost:8000/api/PGCNotifications/triggerPendingRepairs

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Events\MessageSent;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +52,8 @@ class PGCCertPostController extends Controller
                 'ActionTaken' => 'Issued Post Certificate',
 
             ]);
+
+        broadcast(new MessageSent("triggerPostInspection"));
     }
 
     public function fetchRequest(Request $req)
@@ -61,12 +64,12 @@ class PGCCertPostController extends Controller
 
             $data = DB::table('vpostcertreq')
                 ->select(
+                    'ReferenceNo',
                     'Name_of_User',
                     'Type_of_Device',
                     'Brand_and_Model',
                     'ID',
                     'DeptDesc',
-                    'DivDesc',
                     'AssignedTo',
                     'repairlogID'
                 )
@@ -132,7 +135,7 @@ class PGCCertPostController extends Controller
         }
 
         $data = $query
-            ->orderBy('ID', 'desc')
+            ->orderBy('ReferenceNo', 'desc')
             ->paginate(5);
 
         return $data;
@@ -149,6 +152,8 @@ class PGCCertPostController extends Controller
                 'ReferenceNo' => null,
                 'DDate' => null,
             ]);
+
+        broadcast(new MessageSent("triggerPostInspection"));
     }
 
     private function generateReferenceCode()

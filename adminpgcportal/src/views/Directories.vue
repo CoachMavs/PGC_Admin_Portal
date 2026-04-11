@@ -263,6 +263,7 @@ export default {
     Modal: false,
     fetchLoading: false,
     btnLoading: false,
+    form: false,
     dialog: false,
     idload: {
       id: 0,
