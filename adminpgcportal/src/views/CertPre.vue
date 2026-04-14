@@ -7,7 +7,7 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center">
         <v-row rows="auto">
-          <v-col cols="12" md="3">
+          <v-col cols="12" md="7">
             <v-text-field v-model="searchkey" label="Search" append-inner-icon="mdi-magnify" clearable
               @update:model-value="handleSearchInput" />
           </v-col>
@@ -15,48 +15,6 @@
           <v-col cols="12" md="2">
             <v-select v-model="assignedFilter" :items="['All', 'Only me']" append-inner-icon="mdi-filter-outline"
               label="Assigned to:" dense @update:model-value="handleSearchInput" />
-          </v-col>
-
-          <!-- Date From -->
-          <v-col cols="12" md="2">
-            <v-menu v-model="menufrom" :close-on-content-click="false" transition="scale-transition" min-width="auto">
-              <template v-slot:activator="{ props }">
-                <v-text-field v-model="formattedDateFrom" label="From" append-inner-icon="mdi-calendar" readonly
-                  v-bind="props" class="date-picker-field" @input="handleDateInput"></v-text-field>
-              </template>
-
-              <v-card class="d-flex justify-center align-center" style="width: 320px">
-                <v-date-picker v-model="datefrom" hide-header @update:model-value="
-                  (value) => {
-                    datefrom = value;
-                    updateFormattedDateFrom();
-                    fetch(); // Trigger fetch after updating the date
-                    menufrom = false; // Close the menu after selecting a date
-                  }
-                "></v-date-picker>
-              </v-card>
-            </v-menu>
-          </v-col>
-
-          <!-- Date To -->
-          <v-col cols="12" md="2">
-            <v-menu v-model="menuto" :close-on-content-click="false" transition="scale-transition" min-width="auto">
-              <template v-slot:activator="{ props }">
-                <v-text-field style="justify-content: center" v-model="formattedDateTo" label="To"
-                  append-inner-icon="mdi-calendar" readonly v-bind="props" class="date-picker-field"></v-text-field>
-              </template>
-
-              <v-card class="d-flex justify-center align-center" style="width: 320px">
-                <v-date-picker v-model="dateto" hide-header @update:model-value="
-                  (value) => {
-                    dateto = value;
-                    updateFormattedDateTo();
-                    fetch();
-                    menuto = false; // Close the menu after selecting a date
-                  }
-                "></v-date-picker>
-              </v-card>
-            </v-menu>
           </v-col>
 
           <v-col cols="12" md="2">
@@ -241,6 +199,27 @@
               </v-col>
             </v-row>
             <v-row>
+              <v-col cols="12" md="6">
+                <v-menu v-model="menuDDate" :close-on-content-click="false" transition="scale-transition"
+                  min-width="auto">
+                  <template v-slot:activator="{ props }">
+                    <v-text-field :model-value="formatDialogDate(payload.DDate)" label="Date Issued"
+                      append-inner-icon="mdi-calendar" color="#14727a" variant="outlined" hide-details="auto" readonly
+                      v-bind="props" :rules="[required]" validate-on="blur" />
+                  </template>
+
+                  <v-card class="d-flex justify-center align-center" style="width: 320px">
+                    <v-date-picker :model-value="payload.DDate" color="#14727a" hide-header @update:model-value="
+                      (value) => {
+                        payload.DDate = value;
+                        menuDDate = false;
+                      }
+                    "></v-date-picker>
+                  </v-card>
+                </v-menu>
+              </v-col>
+            </v-row>
+            <v-row>
               <v-col cols="12">
                 <v-textarea v-model="payload.Diagnosis" label="Complete Diagnosis" color="#14727a" variant="outlined"
                   hide-details="auto" rows="1" required :rules="[required]" auto-grow validate-on="blur" />
@@ -358,13 +337,7 @@ export default {
     MySnackBar,
   },
   data: () => ({
-    datefrom: null, // Initialize as null
-    dateto: null, // Initialize as null
-    formattedDateFrom: "",
-    formattedDateTo: "",
-
-    menufrom: false,
-    menuto: false,
+    menuDDate: false,
     fetchLoading: false,
     btnLoading: false,
     form: false,
@@ -394,6 +367,7 @@ export default {
     payload: {
       id: "",
       repairlogID: "",
+      DDate: "",
       Diagnosis: "",
       Recommendation: "",
     },
@@ -412,7 +386,7 @@ export default {
 
     myPagination: {
       page: 1,
-      total: 5,
+      total: 10,
       per_page: 0,
     },
   }),
@@ -451,23 +425,11 @@ export default {
   },
 
   mounted() {
-    this.dateto = new Date();
-    this.formattedDateTo = this.formatDate(this.dateto);
-
-    let pastDate = new Date();
-    let year = pastDate.getFullYear();
-    this.datefrom = new Date(year, 0, 1);
-    this.formattedDateFrom = this.formatDate(this.datefrom);
-
     this.fetch();
     this.fetchUsers();
   },
 
   methods: {
-    handleDateInput() {
-      return;
-    },
-
     formatIssuedDate(date) {
       const day = date.getDate();
       const suffix =
@@ -720,13 +682,12 @@ export default {
         },
         data: {
           ...this.payload,
+          DDate: this.formatPayloadDate(this.payload.DDate),
         },
       })
         .then((resp) => {
           this.fetch();
           this.clearInputs();
-          this.filteredUsers = [];
-          this.fetchUsers();
           this.$refs.MySnackBar.showSuccessMessage(
             "Pre-certification records succesfully updated."
           );
@@ -776,6 +737,7 @@ export default {
       this.payloadExtra.ProblemsEncountred = item.ProblemsEncountred;
       this.payload.Recommendation = "It is recommended that the " + item.Type_of_Device + " undergo inspection and repair at an authorized service center.";
       this.payload.Diagnosis = "An initial troubleshooting was performed, and the " + item.Type_of_Device + " was found to be damaged; however, the issue was not resolved.";
+      this.payload.DDate = this.payload.DDate || format(new Date(), "yyyy-MM-dd");
 
       this.dialogList = false;
 
@@ -787,6 +749,7 @@ export default {
     },
 
     OpenDialogAdd() {
+      this.payload.DDate = format(new Date(), "yyyy-MM-dd");
       this.dialog = true;
     },
 
@@ -806,14 +769,13 @@ export default {
     formatDateTable(date) {
       return format(date, "MMM dd, yyyy hh:mm a");
     },
-    formatDate(date) {
-      return format(date, "MMM-dd-yyyy");
+    formatDialogDate(date) {
+      if (!date) return "";
+      return format(new Date(date), "MMM dd, yyyy");
     },
-    updateFormattedDateFrom() {
-      this.formattedDateFrom = this.datefrom ? this.formatDate(this.datefrom) : "";
-    },
-    updateFormattedDateTo() {
-      this.formattedDateTo = this.dateto ? this.formatDate(this.dateto) : "";
+    formatPayloadDate(date) {
+      if (!date) return "";
+      return format(new Date(date), "yyyy-MM-dd");
     },
     extractLink(text) {
       const urlPattern = /(https:\/\/[^\s]+)/g;
@@ -824,8 +786,6 @@ export default {
       let myParameter = {
         page: 1,
         searchkey: "",
-        datefrom: this.formatDate(this.datefrom),
-        dateto: this.formatDate(this.dateto),
         assignedFilter: this.assignedFilter,
       };
 
@@ -856,8 +816,6 @@ export default {
         myParameter = {
           page: 1,
           searchkey: this.searchkey,
-          datefrom: this.formatDate(this.datefrom),
-          dateto: this.formatDate(this.dateto),
           assignedFilter: this.assignedFilter,
         };
         loadData();
@@ -865,8 +823,6 @@ export default {
         myParameter = {
           page: this.myPagination.page,
           searchkey: this.searchkey,
-          datefrom: this.formatDate(this.datefrom),
-          dateto: this.formatDate(this.dateto),
           assignedFilter: this.assignedFilter,
         };
         loadData();
@@ -874,8 +830,6 @@ export default {
         myParameter = {
           page: this.myPagination.page,
           searchkey: this.searchkey,
-          datefrom: this.formatDate(this.datefrom),
-          dateto: this.formatDate(this.dateto),
           assignedFilter: this.assignedFilter,
         };
         loadData();
@@ -928,6 +882,7 @@ export default {
       this.payload.repairlogID = item.repairlogID;
       this.payload.Diagnosis = item.Diagnosis;
       this.payload.Recommendation = item.Recommendation;
+      this.payload.DDate = item.DDate ? format(new Date(item.DDate), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd");
 
       this.dialog = true;
     },
@@ -935,6 +890,7 @@ export default {
     clearInputs() {
       this.payload.id = "";
       this.payload.repairlogID = "";
+      this.payload.DDate = "";
       this.payload.Diagnosis = "";
       this.payload.Recommendation = "";
 

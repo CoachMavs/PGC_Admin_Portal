@@ -94,7 +94,7 @@
           <tbody>
             <tr v-for="item in items" :key="item.id">
               <td style="width: 100px; max-width: 100px; text-align: center">
-                <v-menu offset-y v-if="item.AssignedTo === empISU">
+                <v-menu offset-y v-if="item.AssignedTo_emp_no === empISU">
                   <template v-slot:activator="{ props }">
                     <v-btn
                       v-bind="props"

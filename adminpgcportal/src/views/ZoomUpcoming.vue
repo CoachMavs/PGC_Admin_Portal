@@ -147,6 +147,7 @@ import axios from "axios";
 import "bootstrap";
 import { format } from "date-fns";
 import MySnackBar from "@/components/MySnackBar.vue";
+import echo from "./echo";
 
 export default {
   name: "FooTer",

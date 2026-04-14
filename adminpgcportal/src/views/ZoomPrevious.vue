@@ -6,7 +6,7 @@
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-center">
         <v-row rows="auto">
-          <v-col cols="12" sm="6" md="4">
+          <v-col cols="12" sm="8" md="8">
             <v-text-field
               v-model="searchkey"
               label="Search"
@@ -16,84 +16,10 @@
             />
           </v-col>
 
-          <!-- Date From -->
-          <v-col cols="12" sm="6" md="3">
-            <v-menu
-              v-model="menufrom"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              min-width="auto"
-            >
-              <template v-slot:activator="{ props }">
-                <v-text-field
-                  v-model="formattedDateFrom"
-                  label="From"
-                  append-inner-icon="mdi-calendar"
-                  readonly
-                  v-bind="props"
-                  class="date-picker-field"
-                  @input="handleDateInput"
-                ></v-text-field>
-              </template>
-
-              <v-card class="d-flex justify-center align-center" style="width: 320px">
-                <v-date-picker
-                  v-model="datefrom"
-                  hide-header
-                  @update:model-value="
-                    (value) => {
-                      datefrom = value;
-                      updateFormattedDateFrom();
-                      fetch(); // Trigger fetch after updating the date
-                      menufrom = false; // Close the menu after selecting a date
-                    }
-                  "
-                ></v-date-picker>
-              </v-card>
-            </v-menu>
-          </v-col>
-
-          <!-- Date To -->
-          <v-col cols="12" sm="6" md="3">
-            <v-menu
-              v-model="menuto"
-              :close-on-content-click="false"
-              transition="scale-transition"
-              min-width="auto"
-            >
-              <template v-slot:activator="{ props }">
-                <v-text-field
-                  style="justify-content: center"
-                  v-model="formattedDateTo"
-                  label="To"
-                  append-inner-icon="mdi-calendar"
-                  readonly
-                  v-bind="props"
-                  class="date-picker-field"
-                ></v-text-field>
-              </template>
-
-              <v-card class="d-flex justify-center align-center" style="width: 320px">
-                <v-date-picker
-                  v-model="dateto"
-                  hide-header
-                  @update:model-value="
-                    (value) => {
-                      dateto = value;
-                      updateFormattedDateTo();
-                      fetch();
-                      menuto = false; // Close the menu after selecting a date
-                    }
-                  "
-                ></v-date-picker>
-              </v-card>
-            </v-menu>
-          </v-col>
-
-          <v-col cols="12" sm="6" md="2">
+          <v-col cols="12" sm="4" md="4">
             <v-text-field
               v-model="totalRecords"
-              label="Total record(s) found:"
+              label="Loaded record(s):"
               append-inner-icon="mdi-counter"
               readonly
             />
@@ -101,7 +27,7 @@
         </v-row>
       </div>
 
-      <div class="table-responsive">
+      <div class="table-responsive" ref="tableScrollContainer">
         <table class="table">
           <thead class="custom-title">
             <tr>
@@ -140,19 +66,19 @@
             </tr>
           </tbody>
         </table>
+        <div class="infinite-scroll-status">
+          <div ref="infiniteSentinel" class="infinite-sentinel"></div>
+          <v-progress-circular
+            v-if="loadingMore"
+            indeterminate
+            color="#14727a"
+            size="28"
+          ></v-progress-circular>
+          <div v-else-if="!hasMore && items.length" class="infinite-end">
+            No more records to load
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="text-center">
-      <v-pagination
-        v-model="myPagination.page"
-        :length="myPagination.total"
-        :total-visible="$vuetify.display.smAndDown ? 1 : 7"
-        :size="$vuetify.display.smAndDown ? 'small' : 'default'"
-        @update:model-value="fetch('page')"
-        rounded="circle"
-        color="#673AB7"
-        class="my-pagination"
-      ></v-pagination>
     </div>
   </div>
 
@@ -166,7 +92,7 @@ import axios from "axios";
 import "bootstrap";
 import { format } from "date-fns";
 import MySnackBar from "@/components/MySnackBar.vue";
-import { ref, onMounted, onBeforeUnmount } from "vue";
+import echo from "./echo";
 
 export default {
   name: "ZoomPrevious",
@@ -174,39 +100,26 @@ export default {
     MySnackBar,
   },
   data: () => ({
-    datefrom: null, // Initialize as null
-    dateto: null, // Initialize as null
-    formattedDateFrom: "",
-    formattedDateTo: "",
-
-    menufrom: false,
-    menuto: false,
     fetchLoading: false,
+    loadingMore: false,
     btnLoading: false,
     items: [],
     Modal: false,
     dialog: false,
     searchkey: "",
     totalRecords: 0,
+    hasMore: true,
+    observer: null,
 
     myPagination: {
       page: 1,
-      total: 5,
       per_page: 0,
     },
   }),
 
   mounted() {
-    this.dateto = new Date();
-    this.formattedDateTo = this.formatDate(this.dateto);
-
-    // Set "Date From" as 15 days before today
-    let pastDate = new Date();
-    pastDate.setDate(pastDate.getDate() - 15); // Subtract 15 days
-    this.datefrom = pastDate;
-    this.formattedDateFrom = this.formatDate(this.datefrom);
-
     this.fetch();
+    this.setupInfiniteScroll();
 
     this.channel = echo.channel("portal-notifications").listen("PortalNotification", (e) => {
       if (e.message === "triggerZoomPrev") {
@@ -216,11 +129,47 @@ export default {
   },
 
   beforeUnmount() {
+    if (this.observer) {
+      this.observer.disconnect();
+      this.observer = null;
+    }
+
     if (this.channel) {
       this.channel.stopListening("PortalNotification");
     }
   },
   methods: {
+    setupInfiniteScroll() {
+      if (this.observer) {
+        this.observer.disconnect();
+      }
+
+      const sentinel = this.$refs.infiniteSentinel;
+      if (!sentinel) return;
+
+      this.observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) {
+            this.loadNextPage();
+          }
+        },
+        {
+          root: this.$refs.tableScrollContainer || null,
+          rootMargin: "0px 0px 300px 0px",
+          threshold: 0,
+        }
+      );
+
+      this.observer.observe(sentinel);
+    },
+    loadNextPage() {
+      if (!this.hasMore || this.fetchLoading || this.loadingMore) {
+        return;
+      }
+
+      this.myPagination.page += 1;
+      this.fetch("page");
+    },
     searchItems() {
       this.fetch("search");
     },
@@ -237,15 +186,6 @@ export default {
     formatDateTable(date) {
       return format(date, "MMM dd, yyyy hh:mm a");
     },
-    formatDate(date) {
-      return format(date, "MMM-dd-yyyy");
-    },
-    updateFormattedDateFrom() {
-      this.formattedDateFrom = this.datefrom ? this.formatDate(this.datefrom) : "";
-    },
-    updateFormattedDateTo() {
-      this.formattedDateTo = this.dateto ? this.formatDate(this.dateto) : "";
-    },
     extractLink(text) {
       const urlPattern = /(https:\/\/[^\s]+)/g;
       const match = text.match(urlPattern);
@@ -255,12 +195,17 @@ export default {
       let myParameter = {
         page: 1,
         searchkey: "",
-        datefrom: this.formatDate(this.datefrom),
-        dateto: this.formatDate(this.dateto),
       };
 
       let loadData = () => {
-        this.fetchLoading = true;
+        const isAppending = myParameter.page > 1;
+
+        if (isAppending) {
+          this.loadingMore = true;
+        } else {
+          this.fetchLoading = true;
+        }
+
         axios({
           method: "get",
           url: process.env.VUE_APP_API + "PGCZoom/fetchPrev",
@@ -270,14 +215,18 @@ export default {
           params: myParameter,
         })
           .then((resp) => {
-            this.items = resp.data.data;
-            this.myPagination.total = resp.data.last_page;
+            const fetchedItems = resp.data.data || [];
+            this.items = isAppending ? [...this.items, ...fetchedItems] : fetchedItems;
+            this.myPagination.page = resp.data.current_page;
             this.myPagination.per_page = resp.data.per_page;
-            this.totalRecords = resp.data.total;
+            this.totalRecords = this.items.length;
+            this.hasMore = !!resp.data.next_page_url;
             this.fetchLoading = false;
+            this.loadingMore = false;
           })
           .catch((err) => {
             this.fetchLoading = false;
+            this.loadingMore = false;
             this.$refs.MySnackBar.showErrorMessage("Something went wrong!", err);
           });
       };
@@ -286,24 +235,18 @@ export default {
         myParameter = {
           page: 1,
           searchkey: this.searchkey,
-          datefrom: this.formatDate(this.datefrom),
-          dateto: this.formatDate(this.dateto),
         };
         loadData();
       } else if (paramType == "page") {
         myParameter = {
           page: this.myPagination.page,
           searchkey: this.searchkey,
-          datefrom: this.formatDate(this.datefrom),
-          dateto: this.formatDate(this.dateto),
         };
         loadData();
       } else if (paramType == "search") {
         myParameter = {
-          page: this.myPagination.page,
+          page: 1,
           searchkey: this.searchkey,
-          datefrom: this.formatDate(this.datefrom),
-          dateto: this.formatDate(this.dateto),
         };
         loadData();
       }
@@ -314,12 +257,14 @@ export default {
 
 <style scoped>
 .table-responsive {
-  overflow-x: auto;
+  overflow: auto;
+  max-height: calc(100vh - 260px);
+  position: relative;
 }
 
-.date-picker-field {
-  min-width: 200px; /* Adjust width as needed */
-  overflow: visible; /* Ensure text is not clipped */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
 }
 
 .v-divider {
@@ -329,8 +274,29 @@ export default {
 }
 
 thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   vertical-align: middle;
   background-color: #303847;
   color: white;
+}
+
+.infinite-scroll-status {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 56px;
+  padding: 12px 0 4px;
+}
+
+.infinite-sentinel {
+  width: 1px;
+  height: 1px;
+}
+
+.infinite-end {
+  color: #6c757d;
+  font-size: 0.95rem;
 }
 </style>
