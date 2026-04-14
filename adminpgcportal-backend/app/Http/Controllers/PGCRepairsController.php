@@ -325,15 +325,13 @@ class PGCRepairsController extends Controller
             })
 
             ->when($assignedto === 'Only me', function ($q) {
-                $q->where('AssignedTo', Auth::user()->empISU);
+                $q->where('AssignedTo_emp_no', Auth::user()->emp_no);
             })
             ->whereNotNull('DateReceived')
             ->whereIn('RepairStatusID', [0, 1, 2, 3])
             ->orderBy('DateReceived', 'desc')
             ->paginate(10);
-
-        $empISU = Auth::user()->empISU;
-
+        $empISU = Auth::user()->emp_no;
         return [
             'data' => $data,
             'empISU' => $empISU
@@ -344,59 +342,26 @@ class PGCRepairsController extends Controller
     public function fetchPrev(Request $req)
     {
         $searchkey = $req->query('searchkey');
-        $datefrom  = $req->query('datefrom');
-        $dateto    = $req->query('dateto');
         $assignedto = $req->query('assignedFilter');
 
-        if ($datefrom) {
-            try {
-                // Set datefrom to the start of the day
-                $datefrom = \Carbon\Carbon::createFromFormat('M-d-Y', $datefrom)
-                    ->startOfDay()
-                    ->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Invalid datefrom format'], 400);
-            }
-        }
-
-        if ($dateto) {
-            try {
-                // Set dateto to the end of the day
-                $dateto = \Carbon\Carbon::createFromFormat('M-d-Y', $dateto)
-                    ->endOfDay()
-                    ->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Invalid dateto format'], 400);
-            }
-        }
-
         $query = DB::table('vWebRepairs')
+            ->whereIn('RepairStatusID', [4, 5, 7, 8, 9])
+
+            ->when($assignedto === 'Only me', function ($q) {
+                $q->where('AssignedTo_emp_no', Auth::user()->emp_no);
+            })
             ->when($searchkey, function ($query, $searchkey) {
                 $query->where(function ($subQuery) use ($searchkey) {
-                    $subQuery->where('Employee',   'like', "%{$searchkey}%")
-                        ->orWhere('ReferenceNo', 'like', "%{$searchkey}%")
-                        ->orWhere('DeptDesc',   'like', "%{$searchkey}%")
-                        ->orWhere('DivDesc',    'like', "%{$searchkey}%")
+                    $subQuery->where('ReferenceNo', 'like', "{$searchkey}%")
+                        ->orWhere('Employee', 'like', "%{$searchkey}%")
+                        ->orWhere('DeptDesc', 'like', "%{$searchkey}%")
+                        ->orWhere('DivDesc', 'like', "%{$searchkey}%")
                         ->orWhere('Name_of_User', 'like', "%{$searchkey}%")
                         ->orWhere('ProblemsEncountred', 'like', "%{$searchkey}%");
                 });
             })
-            ->when($assignedto === 'Only me', function ($q) {
-                $q->where('AssignedTo', Auth::user()->empISU);
-            });
+            ->orderBy('DateReceived', 'desc');
 
-        if ($datefrom) {
-            $query->where('DateReceived', '>=', $datefrom);
-        }
-        if ($dateto) {
-            $query->where('DateReceived', '<=', $dateto);
-        }
-
-        $data = $query
-            ->whereIn('RepairStatusID', [4, 5, 7, 8, 9])
-            ->orderBy('DateReceived', 'desc')
-            ->paginate(10);
-
-        return $data;
+        return $query->simplePaginate(20);
     }
 }

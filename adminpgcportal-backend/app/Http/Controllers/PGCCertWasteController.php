@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
 
 class PGCCertWasteController extends Controller
 {
@@ -18,6 +19,7 @@ class PGCCertWasteController extends Controller
         $req->validate([
             'Recommendation' => 'required',
             'Diagnosis' => 'required',
+            'DDate' => 'nullable|date',
         ]);
 
         $id = $req->id;
@@ -25,6 +27,9 @@ class PGCCertWasteController extends Controller
         $Recommendation = $req->Recommendation;
         $repairlogID = $req->repairlogID;
         $user = Auth::user()->emp_no;
+        $DDate = $req->filled('DDate')
+            ? Carbon::parse($req->DDate)->endOfDay()
+            : now();
 
         $ReferenceNo = $this->generateReferenceCode();
 
@@ -33,7 +38,7 @@ class PGCCertWasteController extends Controller
             ->update([
                 'Diagnosis' => $Diagnosis,
                 'Recommendation' => $Recommendation,
-                'DDate' => now(),
+                'DDate' => $DDate,
             ]);
 
         DB::table('tblwastecertificate')
@@ -80,58 +85,29 @@ class PGCCertWasteController extends Controller
     public function fetchWaste(Request $req)
     {
         $searchkey = $req->query('searchkey');
-        $datefrom  = $req->query('datefrom');
-        $dateto    = $req->query('dateto');
         $assignedto = $req->query('assignedFilter');
 
-        if ($datefrom) {
-            try {
-                // Set datefrom to the start of the day
-                $datefrom = \Carbon\Carbon::createFromFormat('M-d-Y', $datefrom)
-                    ->startOfDay()
-                    ->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Invalid datefrom format'], 400);
-            }
-        }
-
-        if ($dateto) {
-            try {
-                // Set dateto to the end of the day
-                $dateto = \Carbon\Carbon::createFromFormat('M-d-Y', $dateto)
-                    ->endOfDay()
-                    ->format('Y-m-d H:i:s');
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Invalid dateto format'], 400);
-            }
-        }
 
         $query = DB::table('vpwastecertificate')
             ->when($searchkey, function ($query, $searchkey) {
                 $query->where(function ($subQuery) use ($searchkey) {
                     $subQuery->where('Name_of_User',   'like', "%{$searchkey}%")
                         ->orWhere('ReferenceNo', 'like', "%{$searchkey}%")
-                        ->orWhere('DeptDesc',   'like', "%{$searchkey}%")
+                        ->orWhere('ReferenceNo1',   'like', "%{$searchkey}%")
                         ->orWhere('Device',   'like', "%{$searchkey}%")
                         ->orWhere('Brand_and_Model',   'like', "%{$searchkey}%")
-                        ->orWhere('DivDesc',    'like', "%{$searchkey}%")
-                        ->orWhere('Diagnosis',    'like', "%{$searchkey}%");
+                        ->orWhere('Name_of_User',    'like', "%{$searchkey}%");
                 });
             })
             ->when($assignedto === 'Only me', function ($q) {
-                $q->where('AssignedTo', Auth::user()->empISU);
+                $q->where('AssignedTo_emp_no', Auth::user()->emp_no);
             });
 
-        if ($datefrom) {
-            $query->where('DDate', '>=', $datefrom);
-        }
-        if ($dateto) {
-            $query->where('DDate', '<=', $dateto);
-        }
+   
 
         $data = $query
             ->orderBy('ReferenceNo', 'desc')
-            ->paginate(5);
+            ->paginate(10);
 
         return $data;
     }
