@@ -591,8 +591,9 @@ export default {
                     text: [
                       "This is to certify that upon diagnostics and checking conducted by this office, the ",
                       { text: item.Brand_and_Model, bold: true },
-                      " ",
-                      { text: item.Device, bold: true },
+                      ...(item.Device === "Others"
+                        ? []
+                        : [" ", { text: item.Device, bold: true }]),
                       " issued to ",
                       { text: item.Name_of_User, bold: true },
                       " of the ",
@@ -629,11 +630,11 @@ export default {
               },
               { text: "Noted by:", margin: [0, 0, 0, 30] },
               {
-                text: "IRWIN C. CANSEJO",
+                text: "DWIGHT GABRIEL C. SEVILLEJA",
                 bold: true,
               },
               {
-                text: "Information Systems Analyst III",
+                text: "Computer Maintenance Technologist I",
               },
             ],
             margin: [40, 20, 40, 0],

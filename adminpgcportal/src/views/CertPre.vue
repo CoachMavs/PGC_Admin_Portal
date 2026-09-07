@@ -591,20 +591,16 @@ export default {
                       { text: "PRE-INSPECTION", bold: true },
                       " on the ",
                       ...(item.Device === "Others"
-                        ? [
-                          { text: item.Brand_and_Model, bold: true },
-                          " of the ",
-                          { text: item.DeptDesc, bold: true },
-                        ]
+                        ? []
                         : [
                           { text: item.Device, bold: true },
                           " - ",
-                          { text: item.Brand_and_Model, bold: true },
-                          " of ",
-                          { text: item.Name_of_User, bold: true },
-                          " of the ",
-                          { text: item.DeptDesc, bold: true },
                         ]),
+                      { text: item.Brand_and_Model, bold: true },
+                      " of ",
+                      { text: item.Name_of_User, bold: true },
+                      " of the ",
+                      { text: item.DeptDesc, bold: true },
                       " was conducted. Below is the detail of the pre-inspection:",
                     ],
                     alignment: "justify",
@@ -642,12 +638,12 @@ export default {
                 margin: [0, 0, 0, 20],
               },
               { text: "Noted by:", margin: [0, 0, 0, 30] },
-              {
-                text: "IRWIN C. CANSEJO",
+               {
+                text: "DWIGHT GABRIEL C. SEVILLEJA",
                 bold: true,
               },
               {
-                text: "Information Systems Analyst III",
+                text: "Computer Maintenance Technologist I",
               },
             ],
             margin: [40, 20, 40, 0],
